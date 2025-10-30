@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미루지마! - 목표 관리</title>
+    <meta name="description" content="미루기를 멈추고 목표를 달성하세요">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>⏰ 미루지마!</h1>
+            <p class="subtitle">미루면 후회, 지금 하면 성공!</p>
+            <button id="dark-mode-toggle" class="icon-btn" aria-label="다크모드 전환">
+                <span class="sun">☀️</span>
+                <span class="moon">🌙</span>
+            </button>
+        </header>
+
+        <!-- Goal Input Form -->
+        <section class="input-section">
+            <div class="goal-input-card">
+                <h2>새 목표 추가</h2>
+
+                <div class="goal-input-form">
+                    <input
+                        type="text"
+                        id="goal-input"
+                        placeholder="예: 프로젝트 기획서 작성하기"
+                        maxlength="100"
+                    >
+
+                    <div class="goal-options">
+                        <div class="option-group">
+                            <label>예상 시간:</label>
+                            <select id="estimated-time">
+                                <option value="15">15분</option>
+                                <option value="30" selected>30분</option>
+                                <option value="60">1시간</option>
+                                <option value="120">2시간</option>
+                                <option value="180">3시간</option>
+                                <option value="240">4시간+</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label>중요도:</label>
+                            <div class="importance-selector">
+                                <button class="importance-btn" data-level="1">⭐</button>
+                                <button class="importance-btn" data-level="2">⭐⭐</button>
+                                <button class="importance-btn active" data-level="3">⭐⭐⭐</button>
+                                <button class="importance-btn" data-level="4">⭐⭐⭐⭐</button>
+                                <button class="importance-btn" data-level="5">⭐⭐⭐⭐⭐</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="add-goal-btn" class="btn-primary">➕ 목표 추가</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabs -->
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="all">모든 목표</button>
+            <button class="tab-btn" data-tab="delaying">미루는 중 🔥</button>
+            <button class="tab-btn" data-tab="completed">완료됨 ✅</button>
+        </nav>
+
+        <!-- Goals Lists -->
+        <section class="goals-section">
+            <!-- All Goals -->
+            <div id="all-tab" class="tab-content active">
+                <div id="active-goals-list" class="goals-list"></div>
+                <div id="all-empty" class="empty-state">
+                    <p>목표를 추가해보세요! 💪</p>
+                </div>
+            </div>
+
+            <!-- Delaying Goals -->
+            <div id="delaying-tab" class="tab-content">
+                <div class="warning-banner">
+                    <p>⚠️ 미루고 있는 목표들입니다. 지금 바로 시작하세요!</p>
+                </div>
+                <div id="delaying-goals-list" class="goals-list"></div>
+                <div id="delaying-empty" class="empty-state">
+                    <p>👏 미루는 목표가 없어요! 멋져요!</p>
+                </div>
+            </div>
+
+            <!-- Completed Goals -->
+            <div id="completed-tab" class="tab-content">
+                <div id="completed-goals-list" class="goals-list"></div>
+                <div id="completed-empty" class="empty-state">
+                    <p>아직 완료한 목표가 없습니다.</p>
+                    <p>첫 번째 목표를 완료해보세요!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Statistics -->
+        <section class="stats-section">
+            <h2>📊 나의 통계</h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-completed">0</div>
+                    <div class="stat-label">완료한 목표</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-number" id="completion-rate">0%</div>
+                    <div class="stat-label">완료율</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-number" id="current-streak">0</div>
+                    <div class="stat-label">연속 달성</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-number" id="avg-delays">0</div>
+                    <div class="stat-label">평균 미루기</div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>미루지 말고, 지금 하세요! 💪</p>
+        </footer>
+    </div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Emoji Rain Container -->
+    <div id="emoji-rain-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
