@@ -370,7 +370,10 @@ function renderDelayingGoals() {
     // Add event listeners - search within container
     delayingGoals.forEach(goal => {
         const goalCard = container.querySelector(`[data-goal-id="${goal.id}"]`);
-        if (!goalCard) return;
+        if (!goalCard) {
+            console.warn(`Goal card not found for goal ${goal.id}`);
+            return;
+        }
 
         const pomodoroBtn = goalCard.querySelector('.btn-pomodoro-small');
         const pomodoroStopBtn = goalCard.querySelector('.btn-pomodoro-stop-small');
@@ -380,22 +383,44 @@ function renderDelayingGoals() {
         const deleteBtn = goalCard.querySelector('.btn-delete-small');
 
         if (pomodoroBtn) {
-            pomodoroBtn.addEventListener('click', () => startPomodoroForGoal(goal.id));
+            pomodoroBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Pomodoro start clicked for goal:', goal.id);
+                startPomodoroForGoal(goal.id);
+            });
         }
         if (pomodoroStopBtn) {
-            pomodoroStopBtn.addEventListener('click', () => stopPomodoroForGoal());
+            pomodoroStopBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Pomodoro stop clicked');
+                stopPomodoroForGoal();
+            });
         }
         if (completeBtn) {
-            completeBtn.addEventListener('click', () => completeGoal(goal.id));
+            completeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                completeGoal(goal.id);
+            });
         }
         if (delayBtn) {
-            delayBtn.addEventListener('click', () => delayGoal(goal.id));
+            delayBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                delayGoal(goal.id);
+            });
         }
         if (shareBtn) {
-            shareBtn.addEventListener('click', () => shareGoal(goal.id));
+            shareBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                shareGoal(goal.id);
+            });
         }
         if (deleteBtn) {
-            deleteBtn.addEventListener('click', () => deleteGoal(goal.id));
+            deleteBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                deleteGoal(goal.id);
+            });
         }
     });
 
@@ -1112,7 +1137,42 @@ let ambientAudio = {
     currentSound: null,
     gainNode: null,
     oscillators: [],
-    bufferSource: null
+    bufferSource: null,
+    youtubePlayer: null,
+    youtubeReady: false
+};
+
+// YouTube video IDs for ambient sounds (only rain and cafe)
+const YOUTUBE_AMBIENT = {
+    rain: 'q76bMs-NwRk',    // 3시간 빗소리
+    cafe: 'gaGkhXSyJSQ'     // 카페 분위기
+};
+
+// YouTube API ready callback
+window.onYouTubeIframeAPIReady = function() {
+    ambientAudio.youtubePlayer = new YT.Player('youtube-player', {
+        height: '0',
+        width: '0',
+        playerVars: {
+            autoplay: 0,
+            controls: 0,
+            loop: 1,
+            playlist: '', // Will be set dynamically
+            playsinline: 1
+        },
+        events: {
+            onReady: function() {
+                ambientAudio.youtubeReady = true;
+                console.log('YouTube player ready');
+            },
+            onStateChange: function(event) {
+                // Auto-loop: restart when ended
+                if (event.data === YT.PlayerState.ENDED) {
+                    ambientAudio.youtubePlayer.playVideo();
+                }
+            }
+        }
+    });
 };
 
 // Initialize ambient sound system
@@ -1162,35 +1222,54 @@ function toggleAmbientSound(sound, btn) {
     playAmbientSound(sound);
 }
 
-// Play ambient sound using Web Audio API
+// Play ambient sound using Web Audio API or YouTube
 function playAmbientSound(sound) {
-    // Create audio context if needed
-    if (!ambientAudio.audioContext) {
-        ambientAudio.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    // Check if this sound uses YouTube
+    if (YOUTUBE_AMBIENT[sound]) {
+        playYouTubeAmbient(sound);
+    } else {
+        // Use Web Audio API for whitenoise and forest
+        if (!ambientAudio.audioContext) {
+            ambientAudio.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        const ctx = ambientAudio.audioContext;
+
+        // Create gain node for volume control
+        ambientAudio.gainNode = ctx.createGain();
+        const volumeSlider = document.getElementById('ambient-volume');
+        ambientAudio.gainNode.gain.value = (volumeSlider?.value || 50) / 100 * 0.3; // Max 30% volume
+        ambientAudio.gainNode.connect(ctx.destination);
+
+        switch(sound) {
+            case 'whitenoise':
+                createWhiteNoise(ctx);
+                break;
+            case 'forest':
+                createForestSound(ctx);
+                break;
+        }
+    }
+}
+
+// Play YouTube ambient sound
+function playYouTubeAmbient(sound) {
+    if (!ambientAudio.youtubeReady || !ambientAudio.youtubePlayer) {
+        alert('YouTube 플레이어가 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+        return;
     }
 
-    const ctx = ambientAudio.audioContext;
-
-    // Create gain node for volume control
-    ambientAudio.gainNode = ctx.createGain();
+    const videoId = YOUTUBE_AMBIENT[sound];
     const volumeSlider = document.getElementById('ambient-volume');
-    ambientAudio.gainNode.gain.value = (volumeSlider?.value || 50) / 100 * 0.3; // Max 30% volume
-    ambientAudio.gainNode.connect(ctx.destination);
+    const volume = (volumeSlider?.value || 50);
 
-    switch(sound) {
-        case 'whitenoise':
-            createWhiteNoise(ctx);
-            break;
-        case 'rain':
-            createRainSound(ctx);
-            break;
-        case 'cafe':
-            createCafeSound(ctx);
-            break;
-        case 'forest':
-            createForestSound(ctx);
-            break;
-    }
+    // Load video and set volume
+    ambientAudio.youtubePlayer.loadVideoById({
+        videoId: videoId,
+        startSeconds: 0
+    });
+    ambientAudio.youtubePlayer.setVolume(volume);
+    ambientAudio.youtubePlayer.playVideo();
 }
 
 // White noise generator
@@ -1209,48 +1288,8 @@ function createWhiteNoise(ctx) {
     ambientAudio.bufferSource = whiteNoise;
 }
 
-// Rain sound (using filtered white noise)
-function createRainSound(ctx) {
-    const bufferSize = 4096;
-    const noise = ctx.createScriptProcessor(bufferSize, 1, 1);
-
-    noise.onaudioprocess = function(e) {
-        const output = e.outputBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            output[i] = Math.random() * 2 - 1;
-        }
-    };
-
-    // Low-pass filter for rain effect
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 1000;
-    filter.Q.value = 0.5;
-
-    noise.connect(filter);
-    filter.connect(ambientAudio.gainNode);
-    ambientAudio.bufferSource = noise;
-}
-
-// Cafe ambience (brown noise + occasional sounds)
-function createCafeSound(ctx) {
-    const bufferSize = 4096;
-    let lastOut = 0;
-
-    const brownNoise = ctx.createScriptProcessor(bufferSize, 1, 1);
-    brownNoise.onaudioprocess = function(e) {
-        const output = e.outputBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            const white = Math.random() * 2 - 1;
-            output[i] = (lastOut + (0.02 * white)) / 1.02;
-            lastOut = output[i];
-            output[i] *= 3.5; // Boost volume
-        }
-    };
-
-    brownNoise.connect(ambientAudio.gainNode);
-    ambientAudio.bufferSource = brownNoise;
-}
+// Rain and Cafe sounds are now handled by YouTube
+// These functions are removed and replaced by playYouTubeAmbient()
 
 // Forest sounds (filtered noise with low frequency)
 function createForestSound(ctx) {
@@ -1277,6 +1316,7 @@ function createForestSound(ctx) {
 
 // Stop ambient sound
 function stopAmbientSound() {
+    // Stop Web Audio API sounds
     if (ambientAudio.bufferSource) {
         try {
             ambientAudio.bufferSource.disconnect();
@@ -1295,12 +1335,31 @@ function stopAmbientSound() {
         }
     });
     ambientAudio.oscillators = [];
+
+    // Stop YouTube player
+    if (ambientAudio.youtubePlayer && ambientAudio.youtubeReady) {
+        try {
+            ambientAudio.youtubePlayer.stopVideo();
+        } catch(e) {
+            console.error('Error stopping YouTube player:', e);
+        }
+    }
 }
 
 // Update volume
 function updateAmbientVolume(volume) {
+    // Update Web Audio API volume
     if (ambientAudio.gainNode) {
         ambientAudio.gainNode.gain.value = volume * 0.3; // Max 30%
+    }
+
+    // Update YouTube player volume
+    if (ambientAudio.youtubePlayer && ambientAudio.youtubeReady) {
+        try {
+            ambientAudio.youtubePlayer.setVolume(volume * 100);
+        } catch(e) {
+            console.error('Error setting YouTube volume:', e);
+        }
     }
 }
 
