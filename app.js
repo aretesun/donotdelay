@@ -1138,45 +1138,27 @@ let ambientAudio = {
     gainNode: null,
     oscillators: [],
     bufferSource: null,
-    youtubePlayer: null,
-    youtubeReady: false
-};
-
-// YouTube video IDs for ambient sounds (only rain and cafe)
-const YOUTUBE_AMBIENT = {
-    rain: 'q76bMs-NwRk',    // 3시간 빗소리
-    cafe: 'gaGkhXSyJSQ'     // 카페 분위기
-};
-
-// YouTube API ready callback
-window.onYouTubeIframeAPIReady = function() {
-    ambientAudio.youtubePlayer = new YT.Player('youtube-player', {
-        height: '0',
-        width: '0',
-        playerVars: {
-            autoplay: 0,
-            controls: 0,
-            loop: 1,
-            playlist: '', // Will be set dynamically
-            playsinline: 1
-        },
-        events: {
-            onReady: function() {
-                ambientAudio.youtubeReady = true;
-                console.log('YouTube player ready');
-            },
-            onStateChange: function(event) {
-                // Auto-loop: restart when ended
-                if (event.data === YT.PlayerState.ENDED) {
-                    ambientAudio.youtubePlayer.playVideo();
-                }
-            }
-        }
-    });
+    audioElements: {
+        rain: null,
+        cafe: null
+    }
 };
 
 // Initialize ambient sound system
 function initAmbientSounds() {
+    // Get audio elements
+    ambientAudio.audioElements.rain = document.getElementById('audio-rain');
+    ambientAudio.audioElements.cafe = document.getElementById('audio-cafe');
+
+    // Set initial volume
+    const initialVolume = 0.5; // 50%
+    if (ambientAudio.audioElements.rain) {
+        ambientAudio.audioElements.rain.volume = initialVolume;
+    }
+    if (ambientAudio.audioElements.cafe) {
+        ambientAudio.audioElements.cafe.volume = initialVolume;
+    }
+
     // Set up event listeners for ambient buttons
     document.querySelectorAll('.ambient-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1222,11 +1204,16 @@ function toggleAmbientSound(sound, btn) {
     playAmbientSound(sound);
 }
 
-// Play ambient sound using Web Audio API or YouTube
+// Play ambient sound using HTML5 Audio or Web Audio API
 function playAmbientSound(sound) {
-    // Check if this sound uses YouTube
-    if (YOUTUBE_AMBIENT[sound]) {
-        playYouTubeAmbient(sound);
+    // Check if this sound uses HTML5 Audio (rain, cafe)
+    if (ambientAudio.audioElements[sound]) {
+        const audioEl = ambientAudio.audioElements[sound];
+        audioEl.currentTime = 0;
+        audioEl.play().catch(err => {
+            console.error(`Error playing ${sound}:`, err);
+            alert(`${sound} 음원을 재생할 수 없습니다.\n음원 파일이 assets/sounds/ 폴더에 있는지 확인해주세요.`);
+        });
     } else {
         // Use Web Audio API for whitenoise and forest
         if (!ambientAudio.audioContext) {
@@ -1252,26 +1239,6 @@ function playAmbientSound(sound) {
     }
 }
 
-// Play YouTube ambient sound
-function playYouTubeAmbient(sound) {
-    if (!ambientAudio.youtubeReady || !ambientAudio.youtubePlayer) {
-        alert('YouTube 플레이어가 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
-        return;
-    }
-
-    const videoId = YOUTUBE_AMBIENT[sound];
-    const volumeSlider = document.getElementById('ambient-volume');
-    const volume = (volumeSlider?.value || 50);
-
-    // Load video and set volume
-    ambientAudio.youtubePlayer.loadVideoById({
-        videoId: videoId,
-        startSeconds: 0
-    });
-    ambientAudio.youtubePlayer.setVolume(volume);
-    ambientAudio.youtubePlayer.playVideo();
-}
-
 // White noise generator
 function createWhiteNoise(ctx) {
     const bufferSize = 4096;
@@ -1288,8 +1255,7 @@ function createWhiteNoise(ctx) {
     ambientAudio.bufferSource = whiteNoise;
 }
 
-// Rain and Cafe sounds are now handled by YouTube
-// These functions are removed and replaced by playYouTubeAmbient()
+// Rain and Cafe sounds are now handled by HTML5 Audio elements
 
 // Forest sounds (filtered noise with low frequency)
 function createForestSound(ctx) {
@@ -1316,6 +1282,16 @@ function createForestSound(ctx) {
 
 // Stop ambient sound
 function stopAmbientSound() {
+    // Stop HTML5 Audio elements
+    if (ambientAudio.audioElements.rain) {
+        ambientAudio.audioElements.rain.pause();
+        ambientAudio.audioElements.rain.currentTime = 0;
+    }
+    if (ambientAudio.audioElements.cafe) {
+        ambientAudio.audioElements.cafe.pause();
+        ambientAudio.audioElements.cafe.currentTime = 0;
+    }
+
     // Stop Web Audio API sounds
     if (ambientAudio.bufferSource) {
         try {
@@ -1335,31 +1311,21 @@ function stopAmbientSound() {
         }
     });
     ambientAudio.oscillators = [];
-
-    // Stop YouTube player
-    if (ambientAudio.youtubePlayer && ambientAudio.youtubeReady) {
-        try {
-            ambientAudio.youtubePlayer.stopVideo();
-        } catch(e) {
-            console.error('Error stopping YouTube player:', e);
-        }
-    }
 }
 
 // Update volume
 function updateAmbientVolume(volume) {
+    // Update HTML5 Audio elements volume
+    if (ambientAudio.audioElements.rain) {
+        ambientAudio.audioElements.rain.volume = volume;
+    }
+    if (ambientAudio.audioElements.cafe) {
+        ambientAudio.audioElements.cafe.volume = volume;
+    }
+
     // Update Web Audio API volume
     if (ambientAudio.gainNode) {
         ambientAudio.gainNode.gain.value = volume * 0.3; // Max 30%
-    }
-
-    // Update YouTube player volume
-    if (ambientAudio.youtubePlayer && ambientAudio.youtubeReady) {
-        try {
-            ambientAudio.youtubePlayer.setVolume(volume * 100);
-        } catch(e) {
-            console.error('Error setting YouTube volume:', e);
-        }
     }
 }
 
