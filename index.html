@@ -11,15 +11,15 @@
     <div class="container">
         <!-- Header -->
         <header>
-            <h1>⏰ 미루지마!</h1>
-            <p class="subtitle">미루면 후회, 지금 하면 성공!</p>
+            <h1><span class="emoji">⏰</span> <span class="text">미루지마!</span></h1>
+            <p class="subtitle">오늘 가장 중요한 일, 지금 바로 시작하세요!</p>
             <button id="dark-mode-toggle" class="icon-btn" aria-label="다크모드 전환">
                 <span class="sun">☀️</span>
                 <span class="moon">🌙</span>
             </button>
         </header>
 
-        <!-- Goal Input Form -->
+        <!-- Goal Input Form (Main Feature) -->
         <section class="input-section">
             <div class="goal-input-card">
                 <h2>새 목표 추가</h2>
@@ -62,6 +62,116 @@
             </div>
         </section>
 
+        <!-- Pomodoro Timer Section (Collapsible) -->
+        <section class="pomodoro-section collapsed">
+            <button class="pomodoro-toggle-btn" id="pomodoro-toggle">
+                <span class="toggle-icon">🍅</span>
+                <span class="toggle-text">Work with Me 타이머</span>
+                <span class="toggle-arrow">▼</span>
+            </button>
+
+            <div class="pomodoro-card" id="pomodoro-card">
+                <div class="pomodoro-header">
+                    <h2><span class="emoji">🍅</span> <span class="text">Work with Me</span></h2>
+                    <p class="pomodoro-subtitle">함께 집중해요!</p>
+                </div>
+
+                <div class="pomodoro-timer" id="pomodoro-timer-container">
+                    <!-- SVG Circle Timer -->
+                    <svg class="pomodoro-circle-svg" viewBox="0 0 300 300">
+                        <defs>
+                            <linearGradient id="pomodoro-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#ec4899;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle
+                            class="pomodoro-circle-bg"
+                            cx="150"
+                            cy="150"
+                            r="140"
+                        />
+                        <circle
+                            id="pomodoro-circle"
+                            class="pomodoro-circle-progress"
+                            cx="150"
+                            cy="150"
+                            r="140"
+                            stroke="url(#pomodoro-gradient)"
+                        />
+                    </svg>
+
+                    <!-- Timer Content -->
+                    <div class="pomodoro-content">
+                        <div id="pomodoro-mode" class="pomodoro-mode">집중 시간</div>
+                        <div id="pomodoro-time" class="pomodoro-time">25:00</div>
+                        <div id="pomodoro-session" class="pomodoro-session">세션 0</div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="pomodoro-controls">
+                    <button id="pomodoro-start" class="btn-pomodoro btn-pomodoro-primary">
+                        ▶️ 시작
+                    </button>
+                    <button id="pomodoro-pause" class="btn-pomodoro btn-pomodoro-warning" style="display: none;">
+                        ⏸️ 일시정지
+                    </button>
+                    <button id="pomodoro-reset" class="btn-pomodoro btn-pomodoro-secondary">
+                        🔄 리셋
+                    </button>
+                </div>
+
+                <!-- Mode Switchers -->
+                <div class="pomodoro-modes">
+                    <button id="mode-focus" class="mode-btn active">집중 (25분)</button>
+                    <button id="mode-break" class="mode-btn">휴식 (5분)</button>
+                    <button id="mode-longbreak" class="mode-btn">긴 휴식 (15분)</button>
+                </div>
+
+                <!-- Pomodoro Stats -->
+                <div class="pomodoro-stats">
+                    <div class="pomodoro-stat-item">
+                        <div class="pomodoro-stat-number" id="pomodoro-today-sessions">0</div>
+                        <div class="pomodoro-stat-label">오늘 세션</div>
+                    </div>
+                    <div class="pomodoro-stat-item">
+                        <div class="pomodoro-stat-number" id="pomodoro-total-focus">0m</div>
+                        <div class="pomodoro-stat-label">총 집중 시간</div>
+                    </div>
+                </div>
+
+                <!-- Ambient Sounds -->
+                <div class="ambient-sounds">
+                    <h3>🎵 집중 사운드</h3>
+                    <div class="ambient-controls">
+                        <button class="ambient-btn" data-sound="whitenoise">
+                            <span class="ambient-icon">🌊</span>
+                            <span class="ambient-label">백색소음</span>
+                        </button>
+                        <button class="ambient-btn" data-sound="rain">
+                            <span class="ambient-icon">🌧️</span>
+                            <span class="ambient-label">빗소리</span>
+                        </button>
+                        <button class="ambient-btn" data-sound="cafe">
+                            <span class="ambient-icon">☕</span>
+                            <span class="ambient-label">카페</span>
+                        </button>
+                        <button class="ambient-btn" data-sound="forest">
+                            <span class="ambient-icon">🌲</span>
+                            <span class="ambient-label">숲</span>
+                        </button>
+                    </div>
+                    <div class="volume-control">
+                        <span class="volume-icon">🔉</span>
+                        <input type="range" id="ambient-volume" min="0" max="100" value="50" class="volume-slider">
+                        <span class="volume-value">50%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Tabs -->
         <nav class="tabs">
             <button class="tab-btn active" data-tab="all">모든 목표</button>
@@ -81,8 +191,8 @@
 
             <!-- Delaying Goals -->
             <div id="delaying-tab" class="tab-content">
-                <div class="warning-banner">
-                    <p>⚠️ 미루고 있는 목표들입니다. 지금 바로 시작하세요!</p>
+                <div class="warning-banner" id="delaying-warning" style="display: none;">
+                    <p><span class="emoji">⚠️</span> 미루고 있는 목표들입니다. 지금 바로 시작하세요!</p>
                 </div>
                 <div id="delaying-goals-list" class="goals-list"></div>
                 <div id="delaying-empty" class="empty-state">
