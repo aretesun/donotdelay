@@ -313,10 +313,17 @@ function renderActiveGoals() {
     empty.style.display = 'none';
     container.innerHTML = activeGoals.map(goal => createGoalCard(goal)).join('');
 
-    // Add event listeners
+    // Add event listeners - search within container
     activeGoals.forEach(goal => {
-        const pomodoroBtn = document.querySelector(`[data-goal-id="${goal.id}"] .btn-pomodoro-small`);
-        const pomodoroStopBtn = document.querySelector(`[data-goal-id="${goal.id}"] .btn-pomodoro-stop-small`);
+        const goalCard = container.querySelector(`[data-goal-id="${goal.id}"]`);
+        if (!goalCard) return;
+
+        const pomodoroBtn = goalCard.querySelector('.btn-pomodoro-small');
+        const pomodoroStopBtn = goalCard.querySelector('.btn-pomodoro-stop-small');
+        const completeBtn = goalCard.querySelector('.btn-complete-small');
+        const delayBtn = goalCard.querySelector('.btn-delay-small');
+        const shareBtn = goalCard.querySelector('.btn-share-small');
+        const deleteBtn = goalCard.querySelector('.btn-delete-small');
 
         if (pomodoroBtn) {
             pomodoroBtn.addEventListener('click', () => startPomodoroForGoal(goal.id));
@@ -324,11 +331,18 @@ function renderActiveGoals() {
         if (pomodoroStopBtn) {
             pomodoroStopBtn.addEventListener('click', () => stopPomodoroForGoal());
         }
-
-        document.querySelector(`[data-goal-id="${goal.id}"] .btn-complete-small`).addEventListener('click', () => completeGoal(goal.id));
-        document.querySelector(`[data-goal-id="${goal.id}"] .btn-delay-small`).addEventListener('click', () => delayGoal(goal.id));
-        document.querySelector(`[data-goal-id="${goal.id}"] .btn-share-small`).addEventListener('click', () => shareGoal(goal.id));
-        document.querySelector(`[data-goal-id="${goal.id}"] .btn-delete-small`).addEventListener('click', () => deleteGoal(goal.id));
+        if (completeBtn) {
+            completeBtn.addEventListener('click', () => completeGoal(goal.id));
+        }
+        if (delayBtn) {
+            delayBtn.addEventListener('click', () => delayGoal(goal.id));
+        }
+        if (shareBtn) {
+            shareBtn.addEventListener('click', () => shareGoal(goal.id));
+        }
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => deleteGoal(goal.id));
+        }
     });
 
     updateFinalTimers();
@@ -353,10 +367,17 @@ function renderDelayingGoals() {
     if (warning) warning.style.display = 'block';
     container.innerHTML = delayingGoals.map(goal => createGoalCard(goal)).join('');
 
-    // Add event listeners
+    // Add event listeners - search within container
     delayingGoals.forEach(goal => {
-        const pomodoroBtn = document.querySelector(`[data-goal-id="${goal.id}"] .btn-pomodoro-small`);
-        const pomodoroStopBtn = document.querySelector(`[data-goal-id="${goal.id}"] .btn-pomodoro-stop-small`);
+        const goalCard = container.querySelector(`[data-goal-id="${goal.id}"]`);
+        if (!goalCard) return;
+
+        const pomodoroBtn = goalCard.querySelector('.btn-pomodoro-small');
+        const pomodoroStopBtn = goalCard.querySelector('.btn-pomodoro-stop-small');
+        const completeBtn = goalCard.querySelector('.btn-complete-small');
+        const delayBtn = goalCard.querySelector('.btn-delay-small');
+        const shareBtn = goalCard.querySelector('.btn-share-small');
+        const deleteBtn = goalCard.querySelector('.btn-delete-small');
 
         if (pomodoroBtn) {
             pomodoroBtn.addEventListener('click', () => startPomodoroForGoal(goal.id));
@@ -364,11 +385,18 @@ function renderDelayingGoals() {
         if (pomodoroStopBtn) {
             pomodoroStopBtn.addEventListener('click', () => stopPomodoroForGoal());
         }
-
-        document.querySelector(`[data-goal-id="${goal.id}"] .btn-complete-small`).addEventListener('click', () => completeGoal(goal.id));
-        document.querySelector(`[data-goal-id="${goal.id}"] .btn-delay-small`).addEventListener('click', () => delayGoal(goal.id));
-        document.querySelector(`[data-goal-id="${goal.id}"] .btn-share-small`).addEventListener('click', () => shareGoal(goal.id));
-        document.querySelector(`[data-goal-id="${goal.id}"] .btn-delete-small`).addEventListener('click', () => deleteGoal(goal.id));
+        if (completeBtn) {
+            completeBtn.addEventListener('click', () => completeGoal(goal.id));
+        }
+        if (delayBtn) {
+            delayBtn.addEventListener('click', () => delayGoal(goal.id));
+        }
+        if (shareBtn) {
+            shareBtn.addEventListener('click', () => shareGoal(goal.id));
+        }
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => deleteGoal(goal.id));
+        }
     });
 
     updateFinalTimers();
